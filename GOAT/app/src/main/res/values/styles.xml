@@ -1,0 +1,19 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+    </style>
+
+    <!-- Application theme. -->
+    <style name="MyActionBar" parent="@android:style/Widget.ActionBar">
+        <item name="android:label">GOAT</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:background">@color/light_blue</item>
+    </style>
+    <color name="seperator">#222</color>
+    <color name="light_blue">#3bb9ff</color>
+    <color name="white">#ffffff</color>
+    <color name="darkblue">#ff371eff</color>
+
+</resources>

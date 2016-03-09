@@ -1,0 +1,137 @@
+/******************************************************************************************************************************************************/
+    public void detectObject()
+    {
+        Log.d(TAG, "DETECTOBJECT");
+
+        if (objImg == null || envImg == null)
+        {
+            Log.d(TAG, "OBJIMG AND/OR ENVIMG == NULL");
+            Toast.makeText(this, "OBJIMG AND/OR ENVIMG == NULL", Toast.LENGTH_LONG).show();
+        }
+        else
+        {
+            Log.d(TAG, "OBJIMG/ENVIMG SET");
+            Toast.makeText(this, "OBJIMG/ENVIMG SET", Toast.LENGTH_LONG).show();
+        }
+
+        FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
+        DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
+
+        MatOfKeyPoint kpObj = new MatOfKeyPoint();
+        MatOfKeyPoint kpEnv = new MatOfKeyPoint();
+
+        Mat descriptorObj = new Mat();
+        Mat descriptorEnv = new Mat();
+
+        detector.detect(objImg, kpObj);
+        detector.detect(envImg, kpEnv);
+
+        extractor.compute(objImg, kpObj, descriptorObj);
+        extractor.compute(envImg, kpEnv, descriptorEnv);
+
+        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
+        MatOfDMatch matches = new MatOfDMatch();
+
+        List<DMatch> matchesList = matches.toList();
+
+        Double maxDist = 0.0;
+        Double minDist = 100.0;
+
+        for (int i = 0; i < objImg.rows(); i++)
+        {
+            Double dist = (double) matchesList.get(i).distance;
+            if (dist < minDist)
+            {
+                minDist = dist;
+            }
+            if (dist > maxDist)
+            {
+                maxDist = dist;
+            }
+        }
+
+        LinkedList<DMatch> goodMatches = new LinkedList();
+        MatOfDMatch gmMat = new MatOfDMatch();
+
+        for (int i = 0; i < objImg.rows(); i++)
+        {
+            if (matchesList.get(i).distance < 3 * minDist)
+            {
+                goodMatches.addLast(matchesList.get(i));
+            }
+        }
+
+        gmMat.fromList(goodMatches);
+
+        Mat imgMatches = new Mat();
+        Features2d.drawMatches(
+                objImg,
+                kpObj,
+                envImg,
+                kpEnv,
+                gmMat,
+                imgMatches,
+                new Scalar(255, 0, 0),
+                new Scalar(0, 0, 255),
+                new MatOfByte(),
+                2);
+
+        LinkedList<Point> objList = new LinkedList();
+        LinkedList<Point> envList = new LinkedList();
+
+        List<KeyPoint> keypoints_objectList = kpObj.toList();
+        List<KeyPoint> keypoints_sceneList = kpEnv.toList();
+
+        for(int i = 0; i<goodMatches.size(); i++){
+            objList.addLast(keypoints_objectList.get(goodMatches.get(i).queryIdx).pt);
+            envList.addLast(keypoints_sceneList.get(goodMatches.get(i).trainIdx).pt);
+        }
+
+        MatOfPoint2f obj = new MatOfPoint2f();
+        obj.fromList(objList);
+
+        MatOfPoint2f scene = new MatOfPoint2f();
+        scene.fromList(envList);
+
+
+
+        Mat H = Calib3d.findHomography(obj, scene);
+
+        LinkedList<Point> cornerList = new LinkedList<Point>();
+        cornerList.add(new Point(0,0));
+        cornerList.add(new Point(objImg.cols(),0));
+        cornerList.add(new Point(objImg.cols(),objImg.rows()));
+        cornerList.add(new Point(0,objImg.rows()));
+
+        MatOfPoint objCorners = new MatOfPoint();
+        objCorners.fromList(cornerList);
+
+        MatOfPoint envCorners = new MatOfPoint();
+
+        Core.perspectiveTransform(objCorners, envCorners, H);
+
+        Imgproc.line(imgMatches, new Point(), new Point(), new Scalar(0, 255, 0), 4);
+        Imgproc.line(imgMatches, new Point(), new Point(), new Scalar(0, 255, 0), 4);
+        Imgproc.line(imgMatches, new Point(), new Point(), new Scalar(0, 255, 0), 4);
+        Imgproc.line(imgMatches, new Point(), new Point(), new Scalar(0, 255, 0), 4);
+
+        Imgcodecs.imwrite("res/drawable/result", imgMatches);
+    }
+/******************************************************************************************************************************************************/
+
+    public Drawable scaleImage (Drawable image, float scaleFactor)
+    {
+        if ((image == null) || !(image instanceof BitmapDrawable))
+        {
+            return image;
+        }
+        Bitmap b = ((BitmapDrawable)image).getBitmap();
+
+        int sizeX = Math.round(image.getIntrinsicWidth() * scaleFactor);
+        int sizeY = Math.round(image.getIntrinsicHeight() * scaleFactor);
+
+        Bitmap bitmapResized = Bitmap.createScaledBitmap(b, sizeX, sizeY, false);
+        image = new BitmapDrawable(getResources(), bitmapResized);
+
+        return image;
+    }
