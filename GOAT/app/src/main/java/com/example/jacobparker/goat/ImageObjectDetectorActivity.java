@@ -91,11 +91,9 @@ public class ImageObjectDetectorActivity extends Activity
         @Override
         public void onManagerConnected(int status)
         {
-            Log.d(TAG, "ONMANAGERCONNECTED");
             switch (status)
             {
                 case LoaderCallbackInterface.SUCCESS:
-                    Log.d(TAG, "SUCCESS");
                     if (objIndex == 3)
                     {
                         detectMultipleObjects();
@@ -106,7 +104,6 @@ public class ImageObjectDetectorActivity extends Activity
                     }
                     break;
                 default:
-                    Log.d(TAG, "FAIL");
                     super.onManagerConnected(status);
                     break;
             }
@@ -119,35 +116,37 @@ public class ImageObjectDetectorActivity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.image_object_detector_activity);
 
-
         objIndex = getIntent().getIntExtra("objIndex", 0);
         envIndex = getIntent().getIntExtra("envIndex", 0);
 
         if (objIndex < 3)
+        {
             objId = objResIDs[objIndex];
+        }
 
         envId = envResIDs[envIndex];
 
         if (!OpenCVLoader.initDebug())
+        {
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_1_0, this, mLoaderCallback);
+        }
         else
+        {
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
     }
 
     public void detectMultipleObjects()
     {
-        Log.d(TAG, "DETECTMULTIPLEOBJECTS");
-
         try
         {
             env_mat = new Mat();
             b = BitmapFactory.decodeResource(getResources(), envId);
             Utils.bitmapToMat(b, env_mat);
-            //env_mat = Utils.loadResource(this, envId, Imgcodecs.CV_LOAD_IMAGE_COLOR);
         }
         catch(Exception e)
         {
-            //logic
+            // logic
         }
 
         FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
@@ -176,19 +175,16 @@ public class ImageObjectDetectorActivity extends Activity
                 obj_mat = new Mat();
                 b = BitmapFactory.decodeResource(getResources(), objResIDs[i]);
                 Utils.bitmapToMat(b, obj_mat);
-                //obj_mat = Utils.loadResource(this, objResIDs[i], Imgcodecs.CV_LOAD_IMAGE_COLOR);
-                //env_mat = Utils.loadResource(this, envId, Imgcodecs.CV_LOAD_IMAGE_COLOR);
             }
             catch (Exception e)
             {
-                //logic
+                // logic
             }
 
             /* detect keypoints in object image */
             MatOfKeyPoint obj_keypoints_mat = new MatOfKeyPoint();
             DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
 
-            //MatOfDMatch matches = new MatOfDMatch();
             List<MatOfDMatch> matches = new ArrayList();
 
             List<KeyPoint> env_keypoints_list;
@@ -224,7 +220,7 @@ public class ImageObjectDetectorActivity extends Activity
 
             if (good_matches.size() < 10)
             {
-                Toast.makeText(this, "Unable to detect object", Toast.LENGTH_LONG).show();
+                // no matches
                 continue;
             }
 
@@ -270,7 +266,6 @@ public class ImageObjectDetectorActivity extends Activity
 
         try
         {
-            //Imgproc.cvtColor(env_mat, env_mat, Imgproc.COLOR_BGR2RGB);
             Bitmap bmp = Bitmap.createBitmap(env_mat.cols(), env_mat.rows(), Bitmap.Config.RGB_565);
             Utils.matToBitmap(env_mat, bmp);
             imgView.setImageBitmap(bmp);
@@ -283,7 +278,6 @@ public class ImageObjectDetectorActivity extends Activity
         Log.d(TAG, "FEATURE DESCRIPTION="+descriptionTime);
         Log.d(TAG, "DESCRIPTION MATCHING="+matchingTime);
         Log.d(TAG, "HGTIME="+hgTime);
-
     }
 
     public void detectObject()
@@ -294,7 +288,7 @@ public class ImageObjectDetectorActivity extends Activity
         }
         catch(IOException e)
         {
-            //logic
+            // logic
         }
 
         FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
@@ -310,25 +304,22 @@ public class ImageObjectDetectorActivity extends Activity
         try
         {
             obj_mat = Utils.loadResource(this, objResIDs[objIndex], Imgcodecs.CV_LOAD_IMAGE_COLOR);
-            //env_mat = Utils.loadResource(this, envId, Imgcodecs.CV_LOAD_IMAGE_COLOR);
         }
         catch (IOException e)
         {
-            //logic
+            // logic
         }
 
         /* detect keypoints in object image */
         MatOfKeyPoint obj_keypoints_mat = new MatOfKeyPoint();
         DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
 
-        //MatOfDMatch matches = new MatOfDMatch();
         List<MatOfDMatch> matches = new ArrayList();
 
         List<KeyPoint> env_keypoints_list;
         Mat obj_descriptor = new Mat();
         detector.detect(obj_mat, obj_keypoints_mat);
         extractor.compute(obj_mat, obj_keypoints_mat, obj_descriptor);
-        //matcher.match(obj_descriptor, env_descriptor, matches);
         matcher.knnMatch(obj_descriptor, env_descriptor, matches, 2);
         env_keypoints_list = env_keypoints_mat.toList();
 

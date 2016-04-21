@@ -78,14 +78,13 @@ public class MainActivity extends Activity
             @Override
             public void onNothingSelected(AdapterView<?> parent)
             {
-                // Another interface callback
+                // no selection interface callback
             }
         });
     }
 
     public void searchImage(View v)
     {
-        Log.d(TAG, "SEARCHIMAGE");
         Intent intent = new Intent(this, ImageObjectDetectorActivity.class);
         intent.putExtra("objIndex", objIndex);
         intent.putExtra("envIndex", envIndex);
@@ -95,25 +94,14 @@ public class MainActivity extends Activity
     public void searchRealTime(View v)
     {
         Log.d(TAG, "SEARCHREALTIME");
-        /*
-        if (obj == null)
-        {
-            Toast.makeText(getApplicationContext(),
-                    "Invalid object selection", Toast.LENGTH_LONG).show();
-        }
-        else
-        {
-        */
         Intent intent = new Intent(this, RealTimeObjectDetectorActivity.class);
-        intent.putExtra("obj", objIndex); //Names.indexOf(obj));
+        intent.putExtra("obj", objIndex);
         startActivity(intent);
-        //}
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -121,12 +109,8 @@ public class MainActivity extends Activity
     @Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings)
         {
             return true;
